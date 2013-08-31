@@ -1,0 +1,12 @@
+{
+  "name": "otr_example",
+  "version": "0.0.0",
+  "description": "An example chat application and server using otr",
+  "author": "bhelx@simst.im",
+  "license": "MIT",
+  "dependencies": {
+    "redis": "0.8.4",
+    "express": "3.3.7",
+    "socket.io": "*"
+  }
+}

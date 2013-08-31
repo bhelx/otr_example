@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Test OTR</title>
+  </head>
+  <body>
+    <div class="username">
+      <label>nick [Enter]</label>
+      <input class="nick" type="text" style="width:200px;">
+    </div>
+    <div class="chat" style="display: hidden;">
+      <div>Encryption : <p class="encryption_state"></p></div>
+      <label>Message [Enter]<label>
+      <input class="chat_input" type="text" style="width:200px;">
+      <ul class="messages">
+
+      </ul>
+    </div>
+  </body>
+
+  <script>
+    var start = (new Date()).getTime();
+  </script>
+
+  <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.1/underscore-min.js"></script>
+
+  <!-- Load dependencies -->
+  <script src="js/salsa20.js"></script>
+  <script src="js/bigint.js"></script>
+  <script src="js/crypto.js"></script>
+  <script src="js/eventemitter.js"></script>
+
+  <!-- Load otr.js or otr.min.js -->
+  <script src="js/otr.js"></script>
+
+  <script src="/socket.io/socket.io.js"></script>
+
+  <script>
+
+    $(document).ready(function () {
+      $('.nick').keypress(function (e) {
+        var $input = $(this);
+
+        if (e.which == 13) {
+          chat = new Chat({
+            room: 'myroom',
+            nick: $input.val(),
+            windowSelector: '.messages',
+            inputSelector: '.chat_input',
+            encryptionStateSelector: '.encryption_state'
+          });
+        }
+      });
+    });
+
+    function Chat (opts) {
+      // set room, nick, windowSelector, inputSelector
+      _.extend(this, opts);
+      var self = this;
+
+      self.$window = $(self.windowSelector);
+      self.$input = $(self.inputSelector);
+      self.$encryptionState = $(self.encryptionStateSelector);
+
+      self.socket = io.connect('http://localhost/');
+      self.buddy = new OTR();
+
+      self.writeMessage = function (msg) {
+        self.$window.prepend("<li>" + msg + "</li>");
+      };
+
+      self.socket.on('message', function (message) {
+        console.log('incoming', message);
+        if (message.type == 'connection') {
+          self.writeMessage(message.data.nick + ' has joined the room ' + message.data.room);
+        } else {
+          self.buddyNick = message.nick;
+          self.buddy.receiveMsg(message.msg);
+        }
+      });
+
+      self.socket.on('connect', function () {
+        self.socket.emit('join', { nick: self.nick, room: self.room }, function (resp) {
+          console.log(resp);
+        });
+      });
+
+      self.buddy.on('ui', function (msg, encrypted) {
+        self.writeMessage(msg);
+      });
+
+      self.$input.keypress(function (e) {
+        var msg = self.$input.val();
+
+        if (e.which == 13) {
+          self.buddy.sendMsg(msg);
+          self.writeMessage(msg);
+          self.$input.val('');
+        }
+      });
+
+      self.buddy.on('io', function (msg) {
+        console.log("outgoing: " + msg)
+        self.socket.emit('message', { nick: self.nick, msg: msg }, function (resp) {
+          console.log(resp);
+        });
+      });
+
+      self.buddy.on('error', function (err) {
+        console.log("error occurred: " + err)
+      });
+
+      self.buddy.on('status', function (state) {
+        self.$encryptionState.text(state);
+        console.log('state ' + state);
+      });
+
+    };
+
+  </script>
+
+</html>
