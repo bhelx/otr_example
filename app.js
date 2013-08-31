@@ -6,22 +6,23 @@ var express     = require('express')
   , storeClient = redis.createClient()
   , pubClient   = redis.createClient()
   , subClient   = redis.createClient()
+  , crypto      = require('crypto')
   ;
 
 server.listen(3000);
 app.use(express.static(__dirname + '/public'));
 
-io.configure( function(){
-  io.enable('browser client minification'); // send minified client
-  io.enable('browser client etag'); // apply etag caching logic based on version number
-  io.enable('browser client gzip'); // gzip the file
-  io.set('log level', 1); // reduce logging
-  io.set('transports', [ // enable all transports (optional if you want flashsocket)
-  'websocket'
-  , 'flashsocket'
-  , 'htmlfile'
-  , 'xhr-polling'
-  , 'jsonp-polling'
+io.configure( function (){
+  io.enable('browser client minification');
+  io.enable('browser client etag');
+  io.enable('browser client gzip');
+  io.set('log level', 1);
+  io.set('transports',
+      'websocket'
+    , 'flashsocket'
+    , 'htmlfile'
+    , 'xhr-polling'
+    , 'jsonp-polling'
   ]);
   var RedisStore = require('socket.io/lib/stores/redis');
   io.set('store', new RedisStore({
@@ -31,14 +32,29 @@ io.configure( function(){
   }));
 });
 
+function createRoom (done) {
+  crypto.randomBytes(32, function (ex, buf) {
+    if (ex) throw ex;
+    done(buf.toString('hex'));
+  });
+}
+
 io.sockets.on('connection', function (socket) {
 
   var room = "";
+
   socket.on('join', function (data, fn) {
-    fn({ msg: "Hello " + data.nick});
-    socket.join(data.room);
-    room = data.room;
-    socket.broadcast.to(room).json.send({ type: 'connection', data: data });
+    function onJoin (room) {
+      fn({ type: 'connection', data: { room: room } });
+      room = room;
+      socket.join(room);
+      socket.broadcast.to(room).json.send({ type: 'connection', data: data });
+    }
+    if (data.room) {
+      onJoin(data.room);
+    } else {
+      createRoom(onJoin);
+    }
   });
 
   socket.on('message', function (message, fn) {
@@ -46,7 +62,7 @@ io.sockets.on('connection', function (socket) {
     fn(message);
   });
 
-  socket.on('disconnect', function(){
+  socket.on('disconnect', function (){
     socket.broadcast.to(room).json.send({ type: 'disconnection', msg: 'User has disconnected' });
   });
 

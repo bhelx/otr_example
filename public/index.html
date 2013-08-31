@@ -45,7 +45,7 @@
 
         if (e.which == 13) {
           chat = new Chat({
-            room: 'myroom',
+            room: window.location.hash.replace('#', ''),
             nick: $input.val(),
             windowSelector: '.messages',
             inputSelector: '.chat_input',
