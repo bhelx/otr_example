@@ -38,7 +38,7 @@
     var chat_tpl = _.template([
       '<div class="chat">',
         '<div>Encryption State: <span class="encryption_state">0</span><button class="encrypt">Encrypt</button></div>',
-        '<div>Trust State: <span class="trust_state">false</span></div>',
+        '<div>Trust State: <span class="trust_state">false</span><button class="verify">Verify</button></div>',
         '<label>Message [Enter]<label>',
         '<input class="chat_input" type="text" style="width:200px;">',
         '<ul class="messages"></ul>',
@@ -61,7 +61,8 @@
             inputSelector: '.chat_input',
             encryptionStateSelector: '.encryption_state',
             encryptButtonSelector: '.encrypt',
-            trustStateSelector: '.trust_state'
+            trustStateSelector: '.trust_state',
+            verifyButtonSelector: '.verify'
           });
         }
       });
@@ -77,6 +78,7 @@
       self.$encryptionState = $(self.encryptionStateSelector);
       self.$encryptButton = $(self.encryptButtonSelector);
       self.$trustState = $(self.trustStateSelector);
+      self.$verifyButton = $(self.verifyButtonSelector);
 
       self.socket = io.connect('http://localhost/');
       self.buddy = new OTR();
@@ -137,6 +139,15 @@
 
         self.buddy.sendQueryMsg();
       });
+
+      self.$verifyButton.click(function (e) {
+        e.preventDefault();
+
+        var smpSecret = prompt('Enter your shared secret');
+        var smpQuestion = prompt('Enter your shared question, leave blank if not needed');
+
+        self.buddy.smpSecret(smpSecret, smpQuestion);
+      })
 
       self.buddy.on('smp', function (type, data) {
         switch (type) {
