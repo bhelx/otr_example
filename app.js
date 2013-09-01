@@ -1,13 +1,28 @@
-var express     = require('express')
-  , app         = express()
-  , server      = require('http').createServer(app)
-  , io          = require('socket.io').listen(server)
-  , redis       = require("redis")
-  , storeClient = redis.createClient()
-  , pubClient   = redis.createClient()
-  , subClient   = redis.createClient()
-  , crypto      = require('crypto')
+var express = require('express')
+  , app     = express()
+  , server  = require('http').createServer(app)
+  , io      = require('socket.io').listen(server)
+  , redis   = require("redis")
+  , crypto  = require('crypto')
   ;
+
+if (process.env.REDISTOGO_URL) {
+  var rtg = require("url").parse(process.env.REDISTOGO_URL);
+  var storeClient = redis.createClient(rtg.port, rtg.hostname)
+    , pubClient   = redis.createClient(rtg.port, rtg.hostname)
+    , subClient   = redis.createClient(rtg.port, rtg.hostname)
+    ;
+
+  storeClient.auth(rtg.auth.split(":")[1]);
+  pubClient.auth(rtg.auth.split(":")[1]);
+  subClient.auth(rtg.auth.split(":")[1]);
+
+} else {
+  var storeClient = redis.createClient()
+    , pubClient   = redis.createClient()
+    , subClient   = redis.createClient()
+    ;
+}
 
 server.listen(3000);
 app.use(express.static(__dirname + '/public'));
