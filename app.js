@@ -38,12 +38,14 @@ io.configure( function (){
     , 'xhr-polling'
     , 'jsonp-polling'
   ]);
-  var RedisStore = require('socket.io/lib/stores/redis');
-  io.set('store', new RedisStore({
-    redisPub: pubClient,
-    redisSub: subClient,
-    redisClient: storeClient
-  }));
+  redisStore.on('ready', function () {
+    var RedisStore = require('socket.io/lib/stores/redis');
+    io.set('store', new RedisStore({
+      redisPub: pubClient,
+      redisSub: subClient,
+      redisClient: storeClient
+    }));
+  });
 });
 
 var createRoom = function (done) {
