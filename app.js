@@ -84,4 +84,6 @@ io.sockets.on('connection', function (socket) {
 
 });
 
-subClient.psubscribe("chat.*");
+storeClient.on('ready', function () {
+  subClient.psubscribe("chat.*");
+});
