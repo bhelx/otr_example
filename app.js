@@ -40,13 +40,12 @@ io.configure( function (){
     , 'xhr-polling'
     , 'jsonp-polling'
   ]);
-  storeClient.on('ready', function () {
-    io.set('store', new RedisStore({
-      redisPub: pubClient,
-      redisSub: subClient,
-      redisClient: storeClient
-    }));
-  });
+  io.set('store', new RedisStore({
+    redis: redis,
+    redisPub: pubClient,
+    redisSub: subClient,
+    redisClient: storeClient
+  }));
 });
 
 var createRoom = function (done) {
