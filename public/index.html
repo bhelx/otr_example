@@ -83,7 +83,7 @@
       self.$verifyButton = $(self.verifyButtonSelector);
       self.$chatUrl = $(self.chatUrlSelector);
 
-      self.socket = io.connect('http://localhost/');
+      self.socket = io.connect('/');
       self.buddy = new OTR();
 
       self.writeMessage = function (msg) {
@@ -103,7 +103,7 @@
       self.socket.on('connect', function () {
         self.socket.emit('join', { nick: self.nick, room: self.room }, function (resp) {
           self.room = resp.data.room;
-          self.$chatUrl.text("http://localhost:3000/#"+self.room);
+          self.$chatUrl.text(window.location.href+'#'+self.room);
           self.writeMessage('you have joined the room');
           console.log(resp);
         });
