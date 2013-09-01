@@ -1,9 +1,11 @@
-var express = require('express')
-  , app     = express()
-  , server  = require('http').createServer(app)
-  , io      = require('socket.io').listen(server)
-  , redis   = require("redis")
-  , crypto  = require('crypto')
+var express    = require('express')
+  , app        = express()
+  , server     = require('http').createServer(app)
+  , sio        = require('socket.io')
+  , RedisStore = sio.RedisClient
+  , io         = sio.listen(server)
+  , redis      = require("redis")
+  , crypto     = require('crypto')
   ;
 
 if (process.env.REDISTOGO_URL) {
@@ -39,7 +41,6 @@ io.configure( function (){
     , 'jsonp-polling'
   ]);
   storeClient.on('ready', function () {
-    var RedisStore = require('socket.io/lib/stores/redis');
     io.set('store', new RedisStore({
       redisPub: pubClient,
       redisSub: subClient,
