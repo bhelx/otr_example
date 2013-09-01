@@ -37,6 +37,7 @@
 
     var chat_tpl = _.template([
       '<div class="chat">',
+        '<div>Chat Url: <span class="chat_url"></span>',
         '<div>Encryption State: <span class="encryption_state">0</span><button class="encrypt">Encrypt</button></div>',
         '<div>Trust State: <span class="trust_state">false</span><button class="verify">Verify</button></div>',
         '<label>Message [Enter]<label>',
@@ -62,7 +63,8 @@
             encryptionStateSelector: '.encryption_state',
             encryptButtonSelector: '.encrypt',
             trustStateSelector: '.trust_state',
-            verifyButtonSelector: '.verify'
+            verifyButtonSelector: '.verify',
+            chatUrlSelector: '.chat_url'
           });
         }
       });
@@ -79,6 +81,7 @@
       self.$encryptButton = $(self.encryptButtonSelector);
       self.$trustState = $(self.trustStateSelector);
       self.$verifyButton = $(self.verifyButtonSelector);
+      self.$chatUrl = $(self.chatUrlSelector);
 
       self.socket = io.connect('http://localhost/');
       self.buddy = new OTR();
@@ -99,6 +102,8 @@
 
       self.socket.on('connect', function () {
         self.socket.emit('join', { nick: self.nick, room: self.room }, function (resp) {
+          self.room = resp.data.room;
+          self.$chatUrl.text("http://localhost:3000/#"+self.room);
           self.writeMessage('you have joined the room');
           console.log(resp);
         });
