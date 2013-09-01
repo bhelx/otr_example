@@ -2,7 +2,6 @@ var express    = require('express')
   , app        = express()
   , server     = require('http').createServer(app)
   , sio        = require('socket.io')
-  , RedisStore = sio.RedisStore
   , io         = sio.listen(server)
   , redis      = require("redis")
   , crypto     = require('crypto')
@@ -12,16 +11,16 @@ if (process.env.REDISTOGO_URL) {
   var rtg = require("url").parse(process.env.REDISTOGO_URL);
 
   var createClient = function () {
-    return redis.createClient(rtg.port, rtg.hostname, { auth_pass: rtg.auth.split(":")[1] });
+    return redis.createClient(rtg.port, rtg.hostname);
   }
 
   var storeClient = createClient();
   var pubClient = createClient();
   var subClient = createClient();
 
-  storeClient.on('error', console.log)
-  pubClient.on('error', console.log)
-  subClient.on('error', console.log)
+  storeClient.auth(rtg.auth.split(":")[1], console.log)
+  pubClient.auth(rtg.auth.split(":")[1], console.log)
+  subClient.auth(rtg.auth.split(":")[1], console.log)
 
 } else {
   var storeClient = redis.createClient()
@@ -30,7 +29,7 @@ if (process.env.REDISTOGO_URL) {
     ;
 }
 
-server.listen(3000);
+server.listen(process.env.PORT || 3000);
 app.use(express.static(__dirname + '/public'));
 
 io.configure( function (){
@@ -45,6 +44,7 @@ io.configure( function (){
     , 'xhr-polling'
     , 'jsonp-polling'
   ]);
+  var RedisStore = require('socket.io/lib/stores/redis');
   io.set('store', new RedisStore({
     redis: redis,
     redisPub: pubClient,
