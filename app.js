@@ -19,9 +19,9 @@ if (process.env.REDISTOGO_URL) {
   var pubClient = createClient();
   var subClient = createClient();
 
-  var storeClient.on('error', console.log)
-  var pubClient.on('error', console.log)
-  var subClient.on('error', console.log)
+  storeClient.on('error', console.log)
+  pubClient.on('error', console.log)
+  subClient.on('error', console.log)
 
 } else {
   var storeClient = redis.createClient()
