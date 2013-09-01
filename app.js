@@ -13,9 +13,12 @@ if (process.env.REDISTOGO_URL) {
     , subClient   = redis.createClient(rtg.port, rtg.hostname)
     ;
 
+  console.log(rtg)
   storeClient.auth(rtg.auth.split(":")[1]);
   pubClient.auth(rtg.auth.split(":")[1]);
   subClient.auth(rtg.auth.split(":")[1]);
+
+  console.log(storeClient);
 
 } else {
   var storeClient = redis.createClient()
