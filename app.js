@@ -38,7 +38,7 @@ io.configure( function (){
     , 'xhr-polling'
     , 'jsonp-polling'
   ]);
-  redisStore.on('ready', function () {
+  storeClient.on('ready', function () {
     var RedisStore = require('socket.io/lib/stores/redis');
     io.set('store', new RedisStore({
       redisPub: pubClient,
