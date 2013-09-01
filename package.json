@@ -5,8 +5,8 @@
   "author": "bhelx@simst.im",
   "license": "MIT",
   "dependencies": {
-    "hiredis": "0.1.15",
-    "redis": "0.8.4",
+    "hiredis": "0.1.x",
+    "redis": "0.6.x",
     "express": "3.3.7",
     "socket.io": "*"
   },
