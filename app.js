@@ -2,7 +2,7 @@ var express    = require('express')
   , app        = express()
   , server     = require('http').createServer(app)
   , sio        = require('socket.io')
-  , RedisStore = sio.RedisClient
+  , RedisStore = sio.RedisStore
   , io         = sio.listen(server)
   , redis      = require("redis")
   , crypto     = require('crypto')
@@ -18,6 +18,11 @@ if (process.env.REDISTOGO_URL) {
   var storeClient = createClient();
   var pubClient = createClient();
   var subClient = createClient();
+
+  var storeClient.on('error', console.log)
+  var pubClient.on('error', console.log)
+  var subClient.on('error', console.log)
+
 } else {
   var storeClient = redis.createClient()
     , pubClient   = redis.createClient()
