@@ -5,17 +5,7 @@
     <title>Test OTR</title>
   </head>
   <body>
-    <div class="username">
-      <label>nick [Enter]</label>
-      <input class="nick" type="text" style="width:200px;">
-    </div>
-    <div class="chat" style="display: hidden;">
-      <div>Encryption : <p class="encryption_state"></p></div>
-      <label>Message [Enter]<label>
-      <input class="chat_input" type="text" style="width:200px;">
-      <ul class="messages">
-
-      </ul>
+    <div class="container">
     </div>
   </body>
 
@@ -39,17 +29,39 @@
 
   <script>
 
+    var username_tpl = _.template([
+      '<div class="username">',
+      '<label>nick [Enter]</label>',
+      '<input class="nick" type="text" style="width:200px;">'
+    ].join('\n'));
+
+    var chat_tpl = _.template([
+      '<div class="chat">',
+        '<div>Encryption State: <span class="encryption_state">0</span><button class="encrypt">Encrypt</button></div>',
+        '<div>Trust State: <span class="trust_state">false</span></div>',
+        '<label>Message [Enter]<label>',
+        '<input class="chat_input" type="text" style="width:200px;">',
+        '<ul class="messages"></ul>',
+      '</div>'
+    ].join('\n'));
+
     $(document).ready(function () {
+
+      $('.container').html(username_tpl());
+
       $('.nick').keypress(function (e) {
         var $input = $(this);
 
         if (e.which == 13) {
+          $('.container').html(chat_tpl());
           chat = new Chat({
             room: window.location.hash.replace('#', ''),
             nick: $input.val(),
             windowSelector: '.messages',
             inputSelector: '.chat_input',
-            encryptionStateSelector: '.encryption_state'
+            encryptionStateSelector: '.encryption_state',
+            encryptButtonSelector: '.encrypt',
+            trustStateSelector: '.trust_state'
           });
         }
       });
@@ -63,6 +75,8 @@
       self.$window = $(self.windowSelector);
       self.$input = $(self.inputSelector);
       self.$encryptionState = $(self.encryptionStateSelector);
+      self.$encryptButton = $(self.encryptButtonSelector);
+      self.$trustState = $(self.trustStateSelector);
 
       self.socket = io.connect('http://localhost/');
       self.buddy = new OTR();
@@ -83,12 +97,13 @@
 
       self.socket.on('connect', function () {
         self.socket.emit('join', { nick: self.nick, room: self.room }, function (resp) {
+          self.writeMessage('you have joined the room');
           console.log(resp);
         });
       });
 
       self.buddy.on('ui', function (msg, encrypted) {
-        self.writeMessage(msg);
+        self.writeMessage("[" + self.buddyNick + "] " + msg);
       });
 
       self.$input.keypress(function (e) {
@@ -96,7 +111,7 @@
 
         if (e.which == 13) {
           self.buddy.sendMsg(msg);
-          self.writeMessage(msg);
+          self.writeMessage("[" + self.nick + "] " + msg);
           self.$input.val('');
         }
       });
@@ -116,6 +131,30 @@
         self.$encryptionState.text(state);
         console.log('state ' + state);
       });
+
+      self.$encryptButton.click(function (e) {
+        e.preventDefault();
+
+        self.buddy.sendQueryMsg();
+      });
+
+      self.buddy.on('smp', function (type, data) {
+        switch (type) {
+          case 'question':
+            var secret = prompt(self.buddyNick+" wants to verify you using the socialist millionaire protocol. The question is '"+data+"'");
+            self.buddy.smpSecret(secret);
+            break
+          case 'trust':
+            console.log(data);
+            self.$trustState.text(self.buddy.trust);
+            if (self.buddy.trust) {
+              alert('trust established');
+            }
+            break
+          default:
+            throw new Error('Unknown type.')
+        }
+      })
 
     };
 
