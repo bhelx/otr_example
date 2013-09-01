@@ -32,7 +32,7 @@ io.configure( function (){
   }));
 });
 
-function createRoom (done) {
+var createRoom = function (done) {
   crypto.randomBytes(32, function (ex, buf) {
     if (ex) throw ex;
     done(buf.toString('hex'));
@@ -44,7 +44,7 @@ io.sockets.on('connection', function (socket) {
   var room = "";
 
   socket.on('join', function (data, fn) {
-    function onJoin (room) {
+    var onJoin = function (room) {
       fn({ type: 'connection', data: { room: room } });
       room = room;
       socket.join(room);
