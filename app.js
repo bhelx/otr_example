@@ -8,17 +8,15 @@ var express = require('express')
 
 if (process.env.REDISTOGO_URL) {
   var rtg = require("url").parse(process.env.REDISTOGO_URL);
-  var storeClient = redis.createClient(rtg.port, rtg.hostname)
-    , pubClient   = redis.createClient(rtg.port, rtg.hostname)
-    , subClient   = redis.createClient(rtg.port, rtg.hostname)
-    ;
 
-  console.log(rtg)
-  console.log(storeClient);
+  var storeClient = redis.createClient(rtg.port, rtg.hostname);
   storeClient.auth(rtg.auth.split(":")[1]);
-  pubClient.auth(rtg.auth.split(":")[1]);
-  subClient.auth(rtg.auth.split(":")[1]);
 
+  var pubClient = redis.createClient(rtg.port, rtg.hostname);
+  pubClient.auth(rtg.auth.split(":")[1]);
+
+  var subClient = redis.createClient(rtg.port, rtg.hostname);
+  subClient.auth(rtg.auth.split(":")[1]);
 
 } else {
   var storeClient = redis.createClient()
